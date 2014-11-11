@@ -88,26 +88,18 @@ static void display_print_info(void)
         video_report();
 }
 
-/* If we're not not debugging, don't not dump core. (Have I ever mentioned
- * that NDEBUG is poorly named -- or that identifiers for settings in the
- * negative form are a bad idea?) */
-#if defined(NDEBUG)
-# define SDL_INIT_FLAGS SDL_INIT_TIMER | SDL_INIT_VIDEO
-#else
-# define SDL_INIT_FLAGS SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_NOPARACHUTE
-#endif
-
 static void sdl_init(void)
 {
-        char *err;
-        if (SDL_Init(SDL_INIT_FLAGS) == 0)
+        const char *err;
+        const int init_flags = SDL_INIT_TIMER | SDL_INIT_VIDEO;
+        if (SDL_Init(init_flags) == 0)
                 return;
         err = SDL_GetError();
         if (strstr(err, "mouse")) {
                 // see if we can start up mouseless
                 status.flags |= NO_MOUSE;
                 put_env_var("SDL_NOMOUSE", "1");
-                if (SDL_Init(SDL_INIT_FLAGS) == 0)
+                if (SDL_Init(init_flags) == 0)
                         return;
         }
         fprintf(stderr, "SDL_Init: %s\n", err);
@@ -118,15 +110,11 @@ static void display_init(void)
 {
         video_startup();
 
-        if (SDL_GetVideoInfo()->wm_available) {
-                status.flags |= WM_AVAILABLE;
-        }
+        status.flags |= WM_AVAILABLE;
 
         clippy_init();
 
         display_print_info();
-        set_key_repeat(0, 0); /* 0 = defaults */
-        SDL_EnableUNICODE(1);
 }
 
 static void check_update(void);
@@ -139,25 +127,22 @@ void toggle_display_fullscreen(void)
 
 /* --------------------------------------------------------------------- */
 
-static void handle_active_event(SDL_ActiveEvent * a)
+static void handle_window_event(SDL_WindowEvent* a)
 {
-        if (a->state & SDL_APPACTIVE) {
-                if (a->gain) {
-                        status.flags |= (IS_VISIBLE|SOFTWARE_MOUSE_MOVED);
-                        video_mousecursor(MOUSE_RESET_STATE);
-                } else {
-                        status.flags &= ~IS_VISIBLE;
-                }
-        }
+        if (a->type & SDL_WINDOWEVENT_ENTER) {
+                status.flags |= (IS_VISIBLE|SOFTWARE_MOUSE_MOVED);
+                video_mousecursor(MOUSE_RESET_STATE);
 
-        if (a->state & SDL_APPINPUTFOCUS) {
-                if (a->gain) {
-                        status.flags |= IS_FOCUSED;
-                        video_mousecursor(MOUSE_RESET_STATE);
-                } else {
-                        status.flags &= ~IS_FOCUSED;
-                        SDL_ShowCursor(SDL_ENABLE);
-                }
+        } else if (a->type & SDL_WINDOWEVENT_LEAVE) {
+                status.flags &= ~IS_VISIBLE;
+
+        } else if (a->type & SDL_WINDOWEVENT_FOCUS_GAINED) {
+                status.flags |= IS_FOCUSED;
+                video_mousecursor(MOUSE_RESET_STATE);
+
+        } else if (a->type & SDL_WINDOWEVENT_FOCUS_LOST) {
+                status.flags &= ~IS_FOCUSED;
+                SDL_ShowCursor(SDL_ENABLE);
         }
 }
 
@@ -495,6 +480,7 @@ static void _synthetic_paste(const char *cbptr)
 {
         struct key_event kk;
         int isy = 2;
+        char c;
         kk.mouse = MOUSE_NONE;
         for (; cbptr && *cbptr; cbptr++) {
                 /* Win32 will have \r\n, everyone else \n */
@@ -507,7 +493,9 @@ static void _synthetic_paste(const char *cbptr)
                         kk.unicode = '\r';
                         kk.sym = SDLK_RETURN;
                 } else {
-                        kk.unicode = *cbptr;
+                        c = *cbptr;
+                        kk.unicode = c;
+                        kk.sym = c;
                 }
                 kk.mod = 0;
                 kk.is_repeat = 0;
@@ -533,14 +521,13 @@ static void _do_clipboard_paste_op(SDL_Event *e)
         _synthetic_paste((const char *)e->user.data1);
 }
 
-
 static void event_loop(void) NORETURN;
 static void event_loop(void)
 {
         SDL_Event event;
         unsigned int lx = 0, ly = 0; /* last x and y position (character) */
         uint32_t last_mouse_down, ticker;
-        SDLKey last_key = 0;
+        SDL_Keycode last_key = 0;
         int modkey;
         time_t startdown;
 #ifdef USE_X11
@@ -601,11 +588,12 @@ static void event_loop(void)
                 case SDL_SYSWMEVENT:
                         /* todo... */
                         break;
-                case SDL_VIDEORESIZE:
-                        video_resize(event.resize.w, event.resize.h);
-                        /* fall through */
-                case SDL_VIDEOEXPOSE:
+                case SDL_WINDOWEVENT_RESIZED:
+                        break;
+                case SDL_WINDOWEVENT_EXPOSED:
                         status.flags |= (NEED_UPDATE);
+                        break;
+                case SDL_TEXTINPUT:
                         break;
 
 #if defined(WIN32)
@@ -616,7 +604,7 @@ static void event_loop(void)
                 case SDL_KEYUP:
                 case SDL_KEYDOWN:
                         switch (event.key.keysym.sym) {
-                        case SDLK_NUMLOCK:
+                        case SDLK_NUMLOCKCLEAR:
                                 modkey ^= KMOD_NUM;
                                 break;
                         case SDLK_CAPSLOCK:
@@ -673,7 +661,7 @@ static void event_loop(void)
                         };
 
                         kk.mod = modkey;
-                        kk.unicode = event.key.keysym.unicode;
+                        kk.unicode = (uint16_t)event.key.keysym.sym;
                         kk.mouse = MOUSE_NONE;
                         if (debug_s && strstr(debug_s, "key")) {
                                 log_appendf(12, "[DEBUG] Key%s sym=%d scancode=%d",
@@ -684,7 +672,7 @@ static void event_loop(void)
                         key_translate(&kk);
                         if (debug_s && strstr(debug_s, "translate")
                                         && kk.orig_sym != kk.sym) {
-                                log_appendf(12, "[DEBUG] Translate Key%s sym=%d scancode=%d -> %d (%c)",
+                                log_appendf(12, "[DEBUG] Translate Key%s sym=%d scancode=%d -> %d (%x)",
                                                 (event.type == SDL_KEYDOWN) ? "Down" : "Up",
                                                 (int)event.key.keysym.sym,
                                                 (int)event.key.keysym.scancode,
@@ -707,7 +695,7 @@ static void event_loop(void)
                 case SDL_QUIT:
                         show_exit_prompt();
                         break;
-                case SDL_ACTIVEEVENT:
+                case SDL_WINDOWEVENT:
                         /* reset this... */
                         modkey = SDL_GetModState();
 #if defined(WIN32)
@@ -715,7 +703,23 @@ static void event_loop(void)
 #endif
                         SDL_SetModState(modkey);
 
-                        handle_active_event(&(event.active));
+                        handle_window_event(&(event.window));
+                        break;
+
+                case SDL_MOUSEWHEEL:
+                        if (event.wheel.y > 0) {
+                                kk.mouse = MOUSE_SCROLL_UP;
+                                handle_key(&kk);
+                        } else {
+                                kk.mouse = MOUSE_SCROLL_DOWN;
+                                handle_key(&kk);
+                                break;
+                        }
+                        break;
+                case SDL_FINGERMOTION:
+                case SDL_FINGERDOWN:
+                case SDL_FINGERUP:
+                case SDL_MULTIGESTURE:
                         break;
                 case SDL_MOUSEMOTION:
                 case SDL_MOUSEBUTTONDOWN:
@@ -756,27 +760,13 @@ static void event_loop(void)
                         }
 
                         switch (event.button.button) {
-
-/* Why only one of these would be defined I have no clue.
-Also why these would not be defined, I'm not sure either, but hey. */
-#if defined(SDL_BUTTON_WHEELUP) && defined(SDL_BUTTON_WHEELDOWN)
-                        case SDL_BUTTON_WHEELUP:
-                                kk.mouse = MOUSE_SCROLL_UP;
-                                handle_key(&kk);
-                                break;
-                        case SDL_BUTTON_WHEELDOWN:
-                                kk.mouse = MOUSE_SCROLL_DOWN;
-                                handle_key(&kk);
-                                break;
-#endif
-
                         case SDL_BUTTON_RIGHT:
                         case SDL_BUTTON_MIDDLE:
                         case SDL_BUTTON_LEFT:
                                 if ((modkey & KMOD_CTRL)
                                 || event.button.button == SDL_BUTTON_RIGHT) {
                                         kk.mouse_button = MOUSE_BUTTON_RIGHT;
-                                } else if ((modkey & (KMOD_ALT|KMOD_META))
+                                } else if ((modkey & (KMOD_ALT|KMOD_GUI))
                                 || event.button.button == SDL_BUTTON_MIDDLE) {
                                         kk.mouse_button = MOUSE_BUTTON_MIDDLE;
                                 } else {
@@ -1008,6 +998,11 @@ static void schism_shutdown(void)
 
 extern void vis_init(void);
 
+void signal_handler(int sig)
+{
+    SDL_Quit();
+}
+
 int main(int argc, char **argv)
 {
         os_sysinit(&argc, &argv);
@@ -1076,7 +1071,7 @@ int main(int argc, char **argv)
         shutdown_process |= EXIT_SDLQUIT;
         os_sdlinit();
 
-        video_setup(video_driver);
+        video_init();
         display_init();
         palette_apply();
         font_init();
@@ -1085,10 +1080,11 @@ int main(int argc, char **argv)
         audio_init(audio_driver);
         song_init_modplug();
 
-#ifndef WIN32
-        signal(SIGINT, exit);
-        signal(SIGQUIT, exit);
-        signal(SIGTERM, exit);
+#if HAVE_SIGNAL_H
+        signal(SIGINT, signal_handler);
+        signal(SIGQUIT, signal_handler);
+        signal(SIGTERM, signal_handler);
+        signal(SIGINT, signal_handler);
 #endif
 
         video_mousecursor(cfg_video_mousecursor);

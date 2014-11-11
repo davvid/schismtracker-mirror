@@ -54,7 +54,7 @@ dnl check endianness
 AC_C_BIGENDIAN
 
 dnl Check for SDL libs
-AM_PATH_SDL(1.2.10, , AC_MSG_ERROR([*** SDL version >= 1.2.10 not found.]))
+PKG_CHECK_MODULES([SDL], [sdl2])
 
 dnl Functions
 AC_CHECK_FUNCS(strchr memmove strerror strtol strcasecmp strncasecmp strverscmp stricmp strnicmp strcasestr strptime asprintf vasprintf memcmp mmap nice unsetenv dup fnmatch log2 mkstemp)
@@ -90,9 +90,11 @@ defaultx11=yes
 
 dnl CoreMIDI (Mac OS X)
 AC_MSG_CHECKING(for CoreAudio/CoreMIDI Framework)
-if echo "$SDL_LIBS" | grep -- -framework >/dev/null 2>&1; then
+if test -e /System/Library/Frameworks/CoreMIDI.framework
+then
         AC_MSG_RESULT(found)
         dnl frameworks aren't part of sdl... should be a separate variable
+        SDL_LIBS="$SDL_LIBS -framework Cocoa"
         SDL_LIBS="$SDL_LIBS -framework CoreAudio -framework CoreMIDI -framework IOKit -framework OpenGL"
         AC_SUBST(SDL_LIBS)
 
@@ -127,7 +129,7 @@ if test x"$libogc_found" = "xyes"; then
         CFLAGS="$CFLAGS $wii_machdep -I${DEVKITPRO}/libogc/include"
         LIBS="$LIBS $wii_machdep -L${DEVKITPRO}/libogc/lib/wii"
         SDL_CFLAGS="$SDL_CFLAGS -I${DEVKITPRO}/libogc/include/SDL"
-        SDL_LIBS="$SDL_LIBS -lSDL -lfat -lwiiuse -lbte -logc -lm -lwiikeyboard"
+        SDL_LIBS="$SDL_LIBS -lSDL2 -lfat -lwiiuse -lbte -logc -lm -lwiikeyboard"
         AC_SUBST(CFLAGS)
         AC_SUBST(LIBS)
         AC_SUBST(SDL_CFLAGS)

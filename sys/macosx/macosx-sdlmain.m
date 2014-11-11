@@ -73,14 +73,14 @@ int macosx_did_finderlaunch;
 
 #define KEQ_FN(n) [NSString stringWithFormat:@"%C", NSF##n##FunctionKey]
 
-@interface SDLApplication : NSApplication
+@interface SDL_NSApplication : NSApplication
 @end
 
 @interface NSApplication(OtherMacOSXExtensions)
 -(void)setAppleMenu:(NSMenu*)m;
 @end
 
-@implementation SDLApplication
+@implementation MainApplication
 /* Invoked from the Quit menu item */
 - (void)terminate:(id)sender
 {
@@ -410,7 +410,7 @@ static void CustomApplicationMain (int argc, char **argv)
         CPSProcessSerNum PSN;
 
         /* Ensure the application object is initialised */
-        [SDLApplication sharedApplication];
+        [MainApplication sharedApplication];
 
         /* Tell the dock about us */
         if (!CPSGetCurrentProcess(&PSN)) {
@@ -419,7 +419,7 @@ static void CustomApplicationMain (int argc, char **argv)
                 }
                 if (!CPSEnableForegroundOperation(&PSN,0x03,0x3C,0x2C,0x1103))
                         if (!CPSSetFrontProcess(&PSN))
-                                [SDLApplication sharedApplication];
+                                [MainApplication sharedApplication];
         }
 
         /* Set up the menubar */
@@ -447,7 +447,7 @@ static void CustomApplicationMain (int argc, char **argv)
         [self setupWorkingDirectory:gFinderLaunch];
 
         /* Hand off to main application code */
-        status = SDL_main (gArgc, gArgv);
+        status = macosx_main (gArgc, gArgv);
 
         /* We're done, thank you for playing */
         exit(status);
@@ -502,7 +502,7 @@ static void CustomApplicationMain (int argc, char **argv)
 
 
 /* Main entry point to executable - should *not* be SDL_main! */
-int main (int argc, char **argv)
+int macosx_main (int argc, char **argv)
 {
         /* Copy the arguments into a global variable */
         /* This is passed if we are launched by double-clicking */
@@ -546,74 +546,66 @@ void macosx_clippy_put(const char *buf)
         [pb declareTypes:[NSArray arrayWithObject:NSStringPboardType] owner:nil];
         [pb setString:contents forType:NSStringPboardType];
 }
-// ktt appears to be 1/60th of a second?
-unsigned int key_repeat_rate(void)
-{
-        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-        int ktt = [defaults integerForKey:@"KeyRepeat"];
-        if (!ktt || ktt < 0) ktt = 4; // eh?
-        ktt = (ktt * 1000) / 60;
-        return (unsigned)ktt;
-}
-unsigned int key_repeat_delay(void)
-{
-        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-        int ktt = [defaults integerForKey:@"InitialKeyRepeat"];
-        if (!ktt || ktt < 0) ktt = 35;
-        ktt = (ktt * 1000) / 60;
-        return (unsigned)ktt;
-}
 int key_scancode_lookup(int k, int def)
 {
-        switch (k & 127) {
-        case 0x32: /* QZ_BACKQUOTE */ return SDLK_BACKQUOTE;
-        case 0x12: /* QZ_1 */ return SDLK_1;
-        case 0x13: /* QZ_2 */ return SDLK_2;
-        case 0x14: /* QZ_3 */ return SDLK_3;
-        case 0x15: /* QZ_4 */ return SDLK_4;
-        case 0x17: /* QZ_5 */ return SDLK_5;
-        case 0x16: /* QZ_6 */ return SDLK_6;
-        case 0x1A: /* QZ_7 */ return SDLK_7;
-        case 0x1C: /* QZ_8 */ return SDLK_8;
-        case 0x19: /* QZ_9 */ return SDLK_9;
-        case 0x1D: /* QZ_0 */ return SDLK_0;
-        case 0x1B: /* QZ_MINUS */ return SDLK_MINUS;
-        case 0x18: /* QZ_EQUALS */ return SDLK_EQUALS;
-        case 0x0C: /* QZ_q */ return SDLK_q;
-        case 0x0D: /* QZ_w */ return SDLK_w;
-        case 0x0E: /* QZ_e */ return SDLK_e;
-        case 0x0F: /* QZ_r */ return SDLK_r;
-        case 0x11: /* QZ_t */ return SDLK_t;
-        case 0x10: /* QZ_y */ return SDLK_y;
-        case 0x20: /* QZ_u */ return SDLK_u;
-        case 0x22: /* QZ_i */ return SDLK_i;
-        case 0x1F: /* QZ_o */ return SDLK_o;
-        case 0x23: /* QZ_p */ return SDLK_p;
-        case 0x21: /* QZ_[ */ return SDLK_LEFTBRACKET;
-        case 0x1E: /* QZ_] */ return SDLK_RIGHTBRACKET;
-        case 0x2A: /* QZ_backslash */ return SDLK_BACKSLASH;
-        case 0x00: /* QZ_a */ return SDLK_a;
-        case 0x01: /* QZ_s */ return SDLK_s;
-        case 0x02: /* QZ_d */ return SDLK_d;
-        case 0x03: /* QZ_f */ return SDLK_f;
-        case 0x05: /* QZ_g */ return SDLK_g;
-        case 0x04: /* QZ_h */ return SDLK_h;
-        case 0x26: /* QZ_j */ return SDLK_j;
-        case 0x28: /* QZ_k */ return SDLK_k;
-        case 0x25: /* QZ_l */ return SDLK_l;
-        case 0x29: /* QZ_; */ return SDLK_SEMICOLON;
-        case 0x27: /* QZ_quote */ return SDLK_QUOTE;
-        case 0x06: /* QZ_z */ return SDLK_z;
-        case 0x07: /* QZ_x */ return SDLK_x;
-        case 0x08: /* QZ_c */ return SDLK_c;
-        case 0x09: /* QZ_v */ return SDLK_v;
-        case 0x0B: /* QZ_b */ return SDLK_b;
-        case 0x2D: /* QZ_n */ return SDLK_n;
-        case 0x2E: /* QZ_m */ return SDLK_m;
-        case 0x2B: /* QZ_, */ return SDLK_COMMA;
-        case 0x2F: /* QZ_. */ return SDLK_PERIOD;
-        case 0x2C: /* QZ_slash */ return SDLK_SLASH;
-        case 0x31: /* QZ_space */ return SDLK_SPACE;
+        switch (k) {
+        case SDL_SCANCODE_1: return SDLK_1;
+        case SDL_SCANCODE_2: return SDLK_2;
+        case SDL_SCANCODE_3: return SDLK_3;
+        case SDL_SCANCODE_4: return SDLK_4;
+        case SDL_SCANCODE_5: return SDLK_5;
+        case SDL_SCANCODE_6: return SDLK_6;
+        case SDL_SCANCODE_7: return SDLK_7;
+        case SDL_SCANCODE_8: return SDLK_8;
+        case SDL_SCANCODE_9: return SDLK_9;
+        case SDL_SCANCODE_0: return SDLK_0;
+        case SDL_SCANCODE_MINUS: return SDLK_MINUS;
+        case SDL_SCANCODE_EQUALS: return SDLK_EQUALS;
+        case SDL_SCANCODE_Q: return SDLK_q;
+        case SDL_SCANCODE_W: return SDLK_w;
+        case SDL_SCANCODE_E: return SDLK_e;
+        case SDL_SCANCODE_R: return SDLK_r;
+        case SDL_SCANCODE_T: return SDLK_t;
+        case SDL_SCANCODE_Y: return SDLK_y;
+        case SDL_SCANCODE_U: return SDLK_u;
+        case SDL_SCANCODE_I: return SDLK_i;
+        case SDL_SCANCODE_O: return SDLK_o;
+        case SDL_SCANCODE_P: return SDLK_p;
+        case SDL_SCANCODE_LEFTBRACKET: return SDLK_LEFTBRACKET;
+        case SDL_SCANCODE_RIGHTBRACKET: return SDLK_RIGHTBRACKET;
+        case SDL_SCANCODE_BACKSLASH:
+        case SDL_SCANCODE_NONUSBACKSLASH: return SDLK_BACKSLASH;
+        case SDL_SCANCODE_A: return SDLK_a;
+        case SDL_SCANCODE_S: return SDLK_s;
+        case SDL_SCANCODE_D: return SDLK_d;
+        case SDL_SCANCODE_F: return SDLK_f;
+        case SDL_SCANCODE_G: return SDLK_g;
+        case SDL_SCANCODE_H: return SDLK_h;
+        case SDL_SCANCODE_J: return SDLK_j;
+        case SDL_SCANCODE_K: return SDLK_k;
+        case SDL_SCANCODE_L: return SDLK_l;
+        case SDL_SCANCODE_SEMICOLON: return SDLK_SEMICOLON;
+        case SDL_SCANCODE_APOSTROPHE: return SDLK_QUOTE;
+        case SDL_SCANCODE_Z: return SDLK_z;
+        case SDL_SCANCODE_X: return SDLK_x;
+        case SDL_SCANCODE_C: return SDLK_c;
+        case SDL_SCANCODE_V: return SDLK_v;
+        case SDL_SCANCODE_B: return SDLK_b;
+        case SDL_SCANCODE_N: return SDLK_n;
+        case SDL_SCANCODE_M: return SDLK_m;
+        case SDL_SCANCODE_COMMA: return SDLK_COMMA;
+        case SDL_SCANCODE_PERIOD: return SDLK_PERIOD;
+        case SDL_SCANCODE_SLASH: return SDLK_SLASH;
+        case SDL_SCANCODE_SPACE: return SDLK_SPACE;
+        case SDL_SCANCODE_KP_EXCLAM: return SDLK_EXCLAIM;
+        case SDL_SCANCODE_KP_AT: return SDLK_AT;
+        case SDL_SCANCODE_KP_HASH: return SDLK_HASH;
+        case SDL_SCANCODE_KP_PERCENT: return SDLK_PERCENT;
+        case SDL_SCANCODE_KP_AMPERSAND: return SDLK_AMPERSAND;
+        case SDL_SCANCODE_KP_LEFTPAREN: return SDLK_LEFTPAREN;
+        case SDL_SCANCODE_KP_RIGHTPAREN: return SDLK_RIGHTPAREN;
+        case SDL_SCANCODE_KP_PLUS: return SDLK_PLUS;
+        case SDL_SCANCODE_KP_MINUS: return SDLK_MINUS;
         default: return def;
         };
 }

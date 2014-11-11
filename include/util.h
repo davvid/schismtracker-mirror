@@ -196,5 +196,10 @@ int run_hook(const char *dir, const char *name, const char *maybe_arg);
 If 'overwrite' is zero, attempts to rename over an existing file will fail with EEXIST. */
 int rename_file(const char *old, const char *newf, int overwrite);
 
+/* Convert UTF-8 to UCS4/2 */
+int utf8_charlen(const char *p);
+uint32_t utf8_to_ucs4(const char *p);
+uint16_t utf8_to_ucs2(const char *p);
+
 #endif /* ! UTIL_H */
 

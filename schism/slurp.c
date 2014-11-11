@@ -25,6 +25,7 @@
 # include <config.h>
 #endif
 
+#include "headers.h"
 #include "slurp.h"
 #include "util.h"
 

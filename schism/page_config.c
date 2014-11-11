@@ -115,10 +115,6 @@ static void video_mode_keep(UNUSED void*ign)
 }
 static void video_mode_cancel(UNUSED void*ign)
 {
-        if (video_revert_driver) {
-                video_setup(video_revert_driver);
-                video_startup();
-        }
         video_fullscreen(video_revert_fs);
         palette_apply();
         font_init();
@@ -178,20 +174,7 @@ static void video_change_dialog(void)
 
 static void change_video_settings(void)
 {
-        const char *new_video_driver;
         int new_fs_flag;
-
-        if (widgets_config[11].d.togglebutton.state) {
-                new_video_driver = "sdl";
-        } else if (widgets_config[12].d.togglebutton.state) {
-                new_video_driver = "yuv";
-        } else if (widgets_config[13].d.togglebutton.state) {
-                new_video_driver = "gl";
-        } else if (widgets_config[14].d.togglebutton.state) {
-                new_video_driver = "directdraw";
-        } else {
-                new_video_driver = "sdl";
-        }
 
         if (widgets_config[9].d.togglebutton.state) {
                 new_fs_flag = 1;
@@ -199,16 +182,11 @@ static void change_video_settings(void)
                 new_fs_flag = 0;
         }
 
-        if (!strcasecmp(new_video_driver, video_driver_name())
-        && new_fs_flag == video_is_fullscreen()) {
+        if (new_fs_flag == video_is_fullscreen()) {
                 return;
         }
 
         video_change_dialog();
-        if (strcasecmp(new_video_driver, video_driver_name())) {
-                video_setup(new_video_driver);
-                video_startup();
-        }
         if (new_fs_flag != video_is_fullscreen())
                 video_fullscreen(new_fs_flag);
         palette_apply();

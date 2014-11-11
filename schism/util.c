@@ -877,3 +877,75 @@ int rename_file(const char *old, const char *new, int overwrite)
 #endif
 }
 
+/*
+ * Returns length indicated by first byte.
+ */
+int utf8_charlen(const char *p)
+{
+        if (*((const unsigned char *)p) < 0x100) {
+                return 1;
+        }
+        unsigned c = *(const unsigned char *)p;
+        if ((c & 0xfe ) == 0xfc) {
+                return 6;
+        }
+        if ((c & 0xfc ) == 0xf8) {
+                return 5;
+        }
+        if ((c & 0xf8 ) == 0xf0) {
+                return 4;
+        }
+        if ((c & 0xf0 ) == 0xe0) {
+                return 3;
+        }
+        if ((c & 0xe0 ) == 0xc0) {
+                return 2;
+        }
+        if ((c & 0x80 ) == 0x80) {
+                /* INVALID */
+                return 0;
+        }
+        return 1;
+}
+
+
+#define UCS4_INVALID 0x80000000U
+#define UCS2_INVALID 0x8000U
+
+/* conv UTF-8 to UCS-4 */
+uint32_t utf8_to_ucs4(const char *p)
+{
+        const unsigned char *c = p;
+        uint32_t ch = 0;
+        int len, i;
+        static unsigned char mask[] = {
+                0x0, 0x7f, 0x1f,
+                0x0f, 0x07, 0x03, 0x01
+        };
+
+        len = utf8_charlen(p);
+        if (len == 0)
+                return UCS4_INVALID;
+
+        ch = c[0] & mask[len];
+
+        for(i=1; i < len; i++) {
+                if ((c[i] & 0xc0) != 0x80) {
+                        return UCS4_INVALID;
+                }
+                ch <<= 6;
+                ch |= c[i] & 0x3f;
+        }
+
+        return ch;
+}
+
+
+uint16_t utf8_to_ucs2(const char *p)
+{
+        uint32_t ucs4 = utf8_to_ucs4(p);
+        if (ucs4 == UCS4_INVALID) {
+                return UCS2_INVALID;
+        }
+        return (uint16_t)(ucs4 & 0xffff);
+}

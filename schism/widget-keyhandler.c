@@ -446,7 +446,7 @@ int widget_handle_key(struct key_event * k)
                         /* I'm handling the key modifiers differently than Impulse Tracker, but only
                         because I think this is much more useful. :) */
                         n = 1;
-                        if (k->mod & (KMOD_ALT | KMOD_META))
+                        if (k->mod & (KMOD_ALT | KMOD_GUI))
                                 n *= 8;
                         if (k->mod & KMOD_SHIFT)
                                 n *= 4;
@@ -489,7 +489,7 @@ int widget_handle_key(struct key_event * k)
                         /* fall through */
                 case WIDGET_THUMBBAR:
                         n = 1;
-                        if (k->mod & (KMOD_ALT | KMOD_META))
+                        if (k->mod & (KMOD_ALT | KMOD_GUI))
                                 n *= 8;
                         if (k->mod & KMOD_SHIFT)
                                 n *= 4;
@@ -778,7 +778,7 @@ int widget_handle_key(struct key_event * k)
                         return 1;
                 break;
         case WIDGET_TEXTENTRY:
-                if ((k->mod & (KMOD_CTRL | KMOD_ALT | KMOD_META)) == 0
+                if ((k->mod & (KMOD_CTRL | KMOD_ALT | KMOD_GUI)) == 0
                                 && textentry_add_char(widget, k->unicode))
                         return 1;
                 break;

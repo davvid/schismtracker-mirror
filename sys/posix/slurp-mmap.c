@@ -26,12 +26,14 @@
 #endif
 
 #if HAVE_MMAP
+#include "headers.h"
+#include "slurp.h"
+
 #include <sys/types.h>
 #include <sys/mman.h>
 #include <unistd.h>
 #include <fcntl.h>
 
-#include "slurp.h"
 
 static void _munmap_slurp(slurp_t *useme)
 {

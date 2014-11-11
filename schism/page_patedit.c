@@ -3365,9 +3365,9 @@ static int pattern_editor_handle_alt_key(struct key_event * k)
         int total_rows = song_get_rows_in_pattern(current_pattern);
 
         /* hack to render this useful :) */
-        if (k->orig_sym == SDLK_KP9) {
+        if (k->orig_sym == SDLK_KP_9) {
                 k->sym = SDLK_F9;
-        } else if (k->orig_sym == SDLK_KP0) {
+        } else if (k->orig_sym == SDLK_KP_0) {
                 k->sym = SDLK_F10;
         }
 

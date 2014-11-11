@@ -56,13 +56,12 @@ void vgamem_scan8(unsigned int y,unsigned char *out,unsigned int tc[16], unsigne
 /* video output routines */
 const char *video_driver_name(void);
 
-void video_setup(const char *driver);
+void video_init();
 void video_startup(void);
 void video_shutdown(void);
 void video_report(void);
 void video_refresh(void);
 void video_colors(unsigned char palette[16][3]);
-void video_resize(unsigned int width, unsigned int height);
 void video_fullscreen(int tri);
 void video_translate(unsigned int vx, unsigned int vy,
                         unsigned int *x, unsigned int *y);

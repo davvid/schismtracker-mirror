@@ -57,8 +57,6 @@ struct widget *widgets = NULL;
 int *selected_widget = NULL;
 int *total_widgets = NULL;
 
-static int currently_grabbed = SDL_GRAB_OFF;
-
 static int fontedit_return_page = PAGE_PATTERN_EDITOR;
 
 /* --------------------------------------------------------------------- */
@@ -486,11 +484,8 @@ static int handle_key_global(struct key_event * k)
                 if (k->mod & KMOD_CTRL) {
                         if (k->state == KEY_RELEASE)
                                 return 1; /* argh */
-                        i = SDL_WM_GrabInput(SDL_GRAB_QUERY);
-                        if (i == SDL_GRAB_QUERY)
-                                i = currently_grabbed;
-                        currently_grabbed = i = (i != SDL_GRAB_ON ? SDL_GRAB_ON : SDL_GRAB_OFF);
-                        SDL_WM_GrabInput(i);
+                        i = SDL_GetRelativeMouseMode() ? SDL_FALSE : SDL_TRUE;
+                        SDL_SetRelativeMouseMode(i);
                         status_text_flash(i
                                 ? "Mouse and keyboard grabbed, press Ctrl+D to release"
                                 : "Mouse and keyboard released");
@@ -850,7 +845,7 @@ static int handle_key_global(struct key_event * k)
                 if (!(k->mod & KMOD_CTRL))
                         return 0;
                 /* fall through */
-        case SDLK_SCROLLOCK:
+        case SDLK_SCROLLLOCK:
                 if (status.dialog_type != DIALOG_NONE)
                         return 0;
                 _mp_finish(NULL);
@@ -872,6 +867,18 @@ static int handle_key_global(struct key_event * k)
                         }
                         return 1;
                 }
+                break;
+        /* ignore these */
+        case SDLK_CAPSLOCK:
+        case SDLK_LCTRL:
+        case SDLK_LSHIFT:
+        case SDLK_LALT:
+        case SDLK_LGUI:
+        case SDLK_RCTRL:
+        case SDLK_RSHIFT:
+        case SDLK_RALT:
+        case SDLK_RGUI:
+                return 1;
         default:
                 if (status.dialog_type != DIALOG_NONE)
                         return 0;
@@ -1008,7 +1015,7 @@ static int _handle_ime(struct key_event *k)
 
                 /* alt+numpad -> char number */
                 if (k->sym == SDLK_LALT || k->sym == SDLK_RALT
-                    || k->sym == SDLK_LMETA || k->sym == SDLK_RMETA) {
+                    || k->sym == SDLK_LGUI || k->sym == SDLK_RGUI) {
                         if (k->state == KEY_RELEASE && alt_numpad_c > 0 && (alt_numpad & 255) > 0) {
                                 memset(&fake, 0, sizeof(fake));
                                 fake.unicode = alt_numpad & 255;

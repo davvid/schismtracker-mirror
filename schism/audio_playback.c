@@ -114,6 +114,8 @@ static void audio_callback(UNUSED void *qq, uint8_t * stream, int len)
         unsigned int waspat = current_song->current_order;
         int i, n;
 
+        memset(stream, 0, len);
+
         if (!stream || !len || !current_song) {
                 if (status.current_page == PAGE_WATERFALL || status.vis_style == VIS_FFT) {
                         vis_work_8m(NULL, 0);
@@ -1273,7 +1275,7 @@ static int _audio_open(const char *driver_spec, int verbose)
         is set. (see SDL_alsa_audio.c: http://tinyurl.com/ybf398f)
         If hw doesn't exist, so be it -- let this fail, we'll fall back to the dummy device, and the
         user can pick a more reasonable device later. */
-        if (SDL_AudioDriverName(driver_name, sizeof(driver_name)) != NULL && !strcmp(driver_name, "alsa")) {
+        if (!strcmp(SDL_GetCurrentAudioDriver(), "alsa")) {
                 char *dev = getenv("AUDIODEV");
                 if (!dev || !*dev)
                         put_env_var("AUDIODEV", "hw");
@@ -1305,7 +1307,7 @@ static int _audio_open(const char *driver_spec, int verbose)
                 return 0;
 
         /* I don't know why this would change between SDL_AudioInit and SDL_OpenAudio, but I'm paranoid */
-        SDL_AudioDriverName(driver_name, sizeof(driver_name));
+        strncpy(driver_name, SDL_GetCurrentAudioDriver(), sizeof(driver_name));
 
         song_lock_audio();
 
@@ -1399,6 +1401,7 @@ static void _audio_init_tail(void)
                 perror("calloc");
                 exit(255);
         }
+        memset(audio_buffer, 0, audio_buffer_samples * audio_sample_size);
 
         samples_played = (status.flags & CLASSIC_MODE) ? SMP_INIT : 0;
 

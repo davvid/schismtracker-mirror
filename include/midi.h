@@ -58,6 +58,8 @@ struct midi_provider {
         void (*send_later)(struct midi_port *d,
                         const unsigned char *seq, unsigned int len, unsigned int delay);
         void (*drain)(struct midi_port *d);
+
+        volatile unsigned int finish; /* tells threads to exit */
 };
 
 #define MIDI_INPUT      1

@@ -39,7 +39,7 @@ EOF
 
 [Prepare]
 # Dependency checking
-require @libsdl.org/sdl 1.2
+require @libsdl.org/sdl 2.0
 
 [Install]
 # Put your installation script here

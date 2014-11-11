@@ -173,8 +173,8 @@ void key_translate(struct key_event *k)
                         break;
                 };
         }
-        if (k->mod & KMOD_META) {
-                k->mod = ((k->mod & ~KMOD_META)
+        if (k->mod & KMOD_GUI) {
+                k->mod = ((k->mod & ~KMOD_GUI)
                           | ((status.flags & META_IS_CTRL)
                              ? KMOD_CTRL : KMOD_ALT));
         }
@@ -184,16 +184,16 @@ void key_translate(struct key_event *k)
         }
         if (k->mod & KMOD_NUM) {
                 switch (k->sym) {
-                case SDLK_KP0: k->sym = SDLK_0; k->mod &= ~KMOD_NUM; break;
-                case SDLK_KP1: k->sym = SDLK_1; k->mod &= ~KMOD_NUM; break;
-                case SDLK_KP2: k->sym = SDLK_2; k->mod &= ~KMOD_NUM; break;
-                case SDLK_KP3: k->sym = SDLK_3; k->mod &= ~KMOD_NUM; break;
-                case SDLK_KP4: k->sym = SDLK_4; k->mod &= ~KMOD_NUM; break;
-                case SDLK_KP5: k->sym = SDLK_5; k->mod &= ~KMOD_NUM; break;
-                case SDLK_KP6: k->sym = SDLK_6; k->mod &= ~KMOD_NUM; break;
-                case SDLK_KP7: k->sym = SDLK_7; k->mod &= ~KMOD_NUM; break;
-                case SDLK_KP8: k->sym = SDLK_8; k->mod &= ~KMOD_NUM; break;
-                case SDLK_KP9: k->sym = SDLK_9; k->mod &= ~KMOD_NUM; break;
+                case SDLK_KP_0: k->sym = SDLK_0; k->mod &= ~KMOD_NUM; break;
+                case SDLK_KP_1: k->sym = SDLK_1; k->mod &= ~KMOD_NUM; break;
+                case SDLK_KP_2: k->sym = SDLK_2; k->mod &= ~KMOD_NUM; break;
+                case SDLK_KP_3: k->sym = SDLK_3; k->mod &= ~KMOD_NUM; break;
+                case SDLK_KP_4: k->sym = SDLK_4; k->mod &= ~KMOD_NUM; break;
+                case SDLK_KP_5: k->sym = SDLK_5; k->mod &= ~KMOD_NUM; break;
+                case SDLK_KP_6: k->sym = SDLK_6; k->mod &= ~KMOD_NUM; break;
+                case SDLK_KP_7: k->sym = SDLK_7; k->mod &= ~KMOD_NUM; break;
+                case SDLK_KP_8: k->sym = SDLK_8; k->mod &= ~KMOD_NUM; break;
+                case SDLK_KP_9: k->sym = SDLK_9; k->mod &= ~KMOD_NUM; break;
                 case SDLK_KP_PERIOD: k->sym = SDLK_PERIOD; k->mod &= ~KMOD_NUM; break;
                 case SDLK_KP_DIVIDE: k->sym = SDLK_SLASH; k->mod &= ~KMOD_NUM; break;
                 case SDLK_KP_MULTIPLY: k->sym = SDLK_ASTERISK; k->mod &= ~KMOD_NUM; break;
@@ -206,17 +206,17 @@ void key_translate(struct key_event *k)
                 };
         } else {
                 switch (k->sym) {
-                case SDLK_KP0: k->sym = SDLK_INSERT; break;
-                case SDLK_KP4: k->sym = SDLK_LEFT; break;
-                case SDLK_KP6: k->sym = SDLK_RIGHT; break;
-                case SDLK_KP2: k->sym = SDLK_DOWN; break;
-                case SDLK_KP8: k->sym = SDLK_UP; break;
+                case SDLK_KP_0: k->sym = SDLK_INSERT; break;
+                case SDLK_KP_4: k->sym = SDLK_LEFT; break;
+                case SDLK_KP_6: k->sym = SDLK_RIGHT; break;
+                case SDLK_KP_2: k->sym = SDLK_DOWN; break;
+                case SDLK_KP_8: k->sym = SDLK_UP; break;
 
-                case SDLK_KP9: k->sym = SDLK_PAGEUP; break;
-                case SDLK_KP3: k->sym = SDLK_PAGEDOWN; break;
+                case SDLK_KP_9: k->sym = SDLK_PAGEUP; break;
+                case SDLK_KP_3: k->sym = SDLK_PAGEDOWN; break;
 
-                case SDLK_KP7: k->sym = SDLK_HOME; break;
-                case SDLK_KP1: k->sym = SDLK_END; break;
+                case SDLK_KP_7: k->sym = SDLK_HOME; break;
+                case SDLK_KP_1: k->sym = SDLK_END; break;
 
                 case SDLK_KP_PERIOD: k->sym = SDLK_DELETE; break;
 
@@ -252,6 +252,11 @@ void key_translate(struct key_event *k)
         case SDLK_RETURN: k->unicode = '\r'; break;
         case SDLK_EQUALS: k->unicode = (k->mod & KMOD_SHIFT) ? '+' : '='; break;
         case SDLK_PERIOD: k->unicode = (k->mod & KMOD_SHIFT) ? '>' : '.'; break;
+        case SDLK_BACKQUOTE: k->unicode = (k->mod & KMOD_SHIFT) ? '~' : '`'; break;
+        case SDLK_QUOTE: k->unicode = (k->mod & KMOD_SHIFT) ? '"': '\''; break;
+        case SDLK_LEFTBRACKET: k->unicode = (k->mod & KMOD_SHIFT) ? '{': '['; break;
+        case SDLK_RIGHTBRACKET: k->unicode = (k->mod & KMOD_SHIFT) ? '}': ']'; break;
+        case SDLK_BACKSLASH: k->unicode = (k->mod & KMOD_SHIFT) ? '|': '\\'; break;
         case SDLK_0: k->unicode = (k->mod & KMOD_SHIFT) ? ')' : '0'; break;
         case SDLK_1: k->unicode = (k->mod & KMOD_SHIFT) ? '!' : '1'; break;
         case SDLK_2: k->unicode = (k->mod & KMOD_SHIFT) ? '@' : '2'; break;
@@ -271,16 +276,16 @@ int numeric_key_event(struct key_event *k, int kponly)
 {
         if (kponly) {
                 switch (k->orig_sym) {
-                case SDLK_KP0: return 0;
-                case SDLK_KP1: return 1;
-                case SDLK_KP2: return 2;
-                case SDLK_KP3: return 3;
-                case SDLK_KP4: return 4;
-                case SDLK_KP5: return 5;
-                case SDLK_KP6: return 6;
-                case SDLK_KP7: return 7;
-                case SDLK_KP8: return 8;
-                case SDLK_KP9: return 9;
+                case SDLK_KP_0: return 0;
+                case SDLK_KP_1: return 1;
+                case SDLK_KP_2: return 2;
+                case SDLK_KP_3: return 3;
+                case SDLK_KP_4: return 4;
+                case SDLK_KP_5: return 5;
+                case SDLK_KP_6: return 6;
+                case SDLK_KP_7: return 7;
+                case SDLK_KP_8: return 8;
+                case SDLK_KP_9: return 9;
                 default:
                         break;
                 };
@@ -291,16 +296,16 @@ int numeric_key_event(struct key_event *k, int kponly)
                 return k->unicode - '0';
 
         switch (k->orig_sym) {
-        case SDLK_0: case SDLK_KP0: return 0;
-        case SDLK_1: case SDLK_KP1: return 1;
-        case SDLK_2: case SDLK_KP2: return 2;
-        case SDLK_3: case SDLK_KP3: return 3;
-        case SDLK_4: case SDLK_KP4: return 4;
-        case SDLK_5: case SDLK_KP5: return 5;
-        case SDLK_6: case SDLK_KP6: return 6;
-        case SDLK_7: case SDLK_KP7: return 7;
-        case SDLK_8: case SDLK_KP8: return 8;
-        case SDLK_9: case SDLK_KP9: return 9;
+        case SDLK_0: case SDLK_KP_0: return 0;
+        case SDLK_1: case SDLK_KP_1: return 1;
+        case SDLK_2: case SDLK_KP_2: return 2;
+        case SDLK_3: case SDLK_KP_3: return 3;
+        case SDLK_4: case SDLK_KP_4: return 4;
+        case SDLK_5: case SDLK_KP_5: return 5;
+        case SDLK_6: case SDLK_KP_6: return 6;
+        case SDLK_7: case SDLK_KP_7: return 7;
+        case SDLK_8: case SDLK_KP_8: return 8;
+        case SDLK_9: case SDLK_KP_9: return 9;
         default:
                 break;
         };
@@ -456,43 +461,47 @@ int kbd_char_to_hex(struct key_event *k)
 {
         if (!NO_CAM_MODS(k->mod)) return -1;
 
-        if (k->unicode == '0') return 0;
-        if (k->unicode == '1') return 1;
-        if (k->unicode == '2') return 2;
-        if (k->unicode == '3') return 3;
-        if (k->unicode == '4') return 4;
-        if (k->unicode == '5') return 5;
-        if (k->unicode == '6') return 6;
-        if (k->unicode == '7') return 7;
-        if (k->unicode == '8') return 8;
-        if (k->unicode == '9') return 9;
-        if (k->unicode == 'a' || k->unicode == 'A') return 10;
-        if (k->unicode == 'b' || k->unicode == 'B') return 11;
-        if (k->unicode == 'c' || k->unicode == 'C') return 12;
-        if (k->unicode == 'd' || k->unicode == 'D') return 13;
-        if (k->unicode == 'e' || k->unicode == 'E') return 14;
-        if (k->unicode == 'f' || k->unicode == 'F') return 15;
+        switch (k->unicode) {
+        case '0': return 0;
+        case '1': return 1;
+        case '2': return 2;
+        case '3': return 3;
+        case '4': return 4;
+        case '5': return 5;
+        case '6': return 6;
+        case '7': return 7;
+        case '8': return 8;
+        case '9': return 9;
+        case 'a': case 'A': return 10;
+        case 'b': case 'B': return 11;
+        case 'c': case 'C': return 12;
+        case 'd': case 'D': return 13;
+        case 'e': case 'E': return 14;
+        case 'f': case 'F': return 15;
+        default:
+                break;
+        }
 
         switch (k->sym) {
-        case SDLK_KP0: if (!(k->mod & KMOD_NUM)) return -1;
+        case SDLK_KP_0: if (!(k->mod & KMOD_NUM)) return -1;
         case SDLK_0: return 0;
-        case SDLK_KP1: if (!(k->mod & KMOD_NUM)) return -1;
+        case SDLK_KP_1: if (!(k->mod & KMOD_NUM)) return -1;
         case SDLK_1: return 1;
-        case SDLK_KP2: if (!(k->mod & KMOD_NUM)) return -1;
+        case SDLK_KP_2: if (!(k->mod & KMOD_NUM)) return -1;
         case SDLK_2: return 2;
-        case SDLK_KP3: if (!(k->mod & KMOD_NUM)) return -1;
+        case SDLK_KP_3: if (!(k->mod & KMOD_NUM)) return -1;
         case SDLK_3: return 3;
-        case SDLK_KP4: if (!(k->mod & KMOD_NUM)) return -1;
+        case SDLK_KP_4: if (!(k->mod & KMOD_NUM)) return -1;
         case SDLK_4: return 4;
-        case SDLK_KP5: if (!(k->mod & KMOD_NUM)) return -1;
+        case SDLK_KP_5: if (!(k->mod & KMOD_NUM)) return -1;
         case SDLK_5: return 5;
-        case SDLK_KP6: if (!(k->mod & KMOD_NUM)) return -1;
+        case SDLK_KP_6: if (!(k->mod & KMOD_NUM)) return -1;
         case SDLK_6: return 6;
-        case SDLK_KP7: if (!(k->mod & KMOD_NUM)) return -1;
+        case SDLK_KP_7: if (!(k->mod & KMOD_NUM)) return -1;
         case SDLK_7: return 7;
-        case SDLK_KP8: if (!(k->mod & KMOD_NUM)) return -1;
+        case SDLK_KP_8: if (!(k->mod & KMOD_NUM)) return -1;
         case SDLK_8: return 8;
-        case SDLK_KP9: if (!(k->mod & KMOD_NUM)) return -1;
+        case SDLK_KP_9: if (!(k->mod & KMOD_NUM)) return -1;
         case SDLK_9: return 9;
         case SDLK_a: return 10;
         case SDLK_b: return 11;
@@ -538,7 +547,7 @@ inline int kbd_get_note(struct key_event *k)
                 if (k->mod & KMOD_SHIFT) return NOTE_FADE;
         case SDLK_HASH: /* for delt */
                 return NOTE_OFF;
-        case SDLK_KP1:
+        case SDLK_KP_1:
                 if (!(k->mod & KMOD_NUM)) return -1;
         case SDLK_1:
                 return NOTE_CUT;
@@ -608,18 +617,3 @@ int kbd_get_alnum(struct key_event *k)
         }
         return k->sym;
 }
-
-/* --------------------------------------------------------------------- */
-
-static int keydelay = SDL_DEFAULT_REPEAT_DELAY, keyrate = SDL_DEFAULT_REPEAT_INTERVAL;
-
-void set_key_repeat(int delay, int rate)
-{
-        /* save these for later */
-        if (delay) {
-                keydelay = delay;
-                keyrate = rate;
-        }
-        SDL_EnableKeyRepeat(keydelay, keyrate);
-}
-

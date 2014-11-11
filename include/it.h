@@ -164,7 +164,7 @@ struct tracker_status {
         int flags;
         enum tracker_time_display time_display;
         enum tracker_vis_style vis_style;
-        SDLKey last_keysym;
+        SDL_Keycode last_keysym;
 
         time_t last_midi_time;
         unsigned char last_midi_event[64];
@@ -387,9 +387,6 @@ void kbd_set_current_octave(int new_octave);
 int kbd_get_note(struct key_event *k);
 
 int kbd_get_alnum(struct key_event *k);
-
-/* use 0 for delay to (re)set the default rate. */
-void set_key_repeat(int delay, int rate);
 
 /* --------------------------------------------------------------------- */
 /* stuff */

@@ -851,15 +851,15 @@ static int fontedit_handle_key(struct key_event * k)
 
         /* kp is special */
         switch (k->orig_sym) {
-        case SDLK_KP0:
+        case SDLK_KP_0:
                 if (k->state == KEY_RELEASE)
                         return 1;
                 k->sym += 10;
                 /* fall through */
-        case SDLK_KP1...SDLK_KP9:
+        case SDLK_KP_1...SDLK_KP_9:
                 if (k->state == KEY_RELEASE)
                         return 1;
-                n = k->sym - SDLK_KP1;
+                n = k->sym - SDLK_KP_1;
                 if (k->mod & KMOD_SHIFT)
                         n += 10;
                 palette_load_preset(n);

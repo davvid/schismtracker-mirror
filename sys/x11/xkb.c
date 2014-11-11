@@ -37,82 +37,10 @@
 #endif
 
 static int virgin = 1;
-static unsigned int delay, rate;
 
 #ifdef USE_XKB
 static XkbDescPtr us_kb_map;
 #endif
-
-static void _key_info_setup(void)
-{
-        Display *dpy;
-        SDL_SysWMinfo info;
-
-        if (!virgin) return;
-        virgin = 0;
-
-        memset(&info, 0, sizeof(info));
-        SDL_VERSION(&info.version);
-        if (SDL_GetWMInfo(&info)) {
-                if (info.info.x11.lock_func)
-                        info.info.x11.lock_func();
-                dpy = info.info.x11.display;
-        } else {
-                dpy = NULL;
-        }
-        if (!dpy) {
-                dpy = XOpenDisplay(NULL);
-                if (!dpy) return;
-                memset(&info, 0, sizeof(info));
-        }
-
-#ifdef USE_XKB
-        /* Dear X11,
-                You suck.
-        Sincerely, Storlek */
-        char blank[] = "";
-        char symbols[] = "+us(basic)";
-        XkbComponentNamesRec rec = {
-                .symbols = symbols,
-                .keymap = blank,
-                .keycodes = blank,
-                .types = blank,
-                .compat = blank,
-                .geometry = blank,
-        };
-        us_kb_map = XkbGetKeyboardByName(dpy, XkbUseCoreKbd, &rec,
-                        XkbGBN_AllComponentsMask, XkbGBN_AllComponentsMask, False);
-        if (!us_kb_map)
-                log_appendf(3, "Warning: XKB support missing or broken; keyjamming might not work right");
-
-        if (XkbGetAutoRepeatRate(dpy, XkbUseCoreKbd, &delay, &rate)) {
-                if (info.info.x11.unlock_func)
-                        info.info.x11.unlock_func();
-                return;
-        }
-#else
-        log_appendf(3, "Warning: XKB support not compiled in; keyjamming might not work right");
-#endif
-
-        /* eh... */
-        delay = 125;
-        rate = 30;
-
-        if (info.info.x11.unlock_func)
-                info.info.x11.unlock_func();
-}
-
-unsigned int key_repeat_rate(void)
-{
-        _key_info_setup();
-        return rate;
-}
-
-unsigned int key_repeat_delay(void)
-{
-        _key_info_setup();
-        return delay;
-}
 
 #ifdef USE_XKB
 int key_scancode_lookup(int k, int def)
