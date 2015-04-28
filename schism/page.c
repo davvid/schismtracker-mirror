@@ -1116,6 +1116,15 @@ void handle_key(struct key_event *k)
                         return;
                 }
                 break;
+        case SDLK_BACKSLASH:
+                if (k->state) return;
+                if (status.flags & DISKWRITER_ACTIVE) return;
+                if (k->mod & KMOD_SHIFT) {
+                        kbd_set_current_octave(kbd_get_current_octave() + 1);
+                } else {
+                        kbd_set_current_octave(kbd_get_current_octave() - 1);
+                }
+                return;
         case SDLK_SLASH:
                 if (k->state == KEY_RELEASE) return;
                 if (status.flags & DISKWRITER_ACTIVE) return;
